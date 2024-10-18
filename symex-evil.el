@@ -58,7 +58,7 @@ only records a repition when in normal or visual state. This
 calls `evil-repeat-start' if the buffer is currently in symex
 state."
   (when evil-local-mode
-    (let ((repeat-type (evil--repeat-type this-command nil)))
+    (let ((repeat-type (evil--repeat-type this-command)))
       ;; `evil-repeat-pre-hook' has several paths that it can take and only one
       ;; of them results in `evil-repeat-start' being called. We only need to
       ;; account for the conditions which would have started recording repeat
@@ -84,7 +84,7 @@ no recording was started unless the buffer is in normal or visual
 state. This calls `evil-repeat-stop' if the buffer is currently
 in symex state as well."
   (when (and evil-local-mode evil-recording-repeat)
-    (let ((repeat-type (evil--repeat-type this-command t)))
+    (let ((repeat-type (evil--repeat-type this-command)))
       ;; We only need to call `evil-repeat-stop' if recording would have been
       ;; started by `symex-evil-repeat-start-recording-advice'. If recording was
       ;; started for any other reason, then it will already have been turned off
