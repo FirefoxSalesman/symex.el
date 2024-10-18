@@ -27,8 +27,8 @@
 
 ;;; Code:
 
-(require 'symex-custom
-         'symex-primitives)
+(require 'symex-custom)
+(require 'symex-primitives)
 
 ;; to avoid byte compile warnings.  eventually sort out the dependency
 ;; order so this is unnecessary
