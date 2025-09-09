@@ -130,7 +130,7 @@
 (define-key evil-symex-state-map (kbd "H-h") 'symex--toggle-highlight)
 (define-key evil-symex-state-map (kbd ".") 'symex-repeat)
 (define-key evil-symex-state-map (kbd "C-.") 'symex-repeat-pop)
-(define-key evil-symex-state-map (kbd "C-c) ." 'symex-repeat-recent)
+(define-key evil-symex-state-map (kbd "C-c .") 'symex-repeat-recent)
 (define-key evil-symex-state-map (kbd "<return>") 'evil-insert-state)
 (define-key evil-symex-state-map (kbd "<escape>") 'evil-normal-state)
 (define-key evil-symex-state-map (kbd "u") 'evil-undo)
