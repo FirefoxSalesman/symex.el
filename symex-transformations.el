@@ -38,7 +38,6 @@
 (require 'symex-utils)
 (require 'symex-traversals)
 (require 'symex-evaluator)
-(require 'symex-evil)
 
 ;; avoid byte-compile warnings
 (declare-function evil-start-undo-step "ext:evil")
@@ -141,7 +140,7 @@ BODY - the actual implementation of the command."
          ;; perhaps, (undo-boundary)
          (evil-start-undo-step))
        ,@body
-       (symex-enter-lowest))))
+       (evil-insert-state))))
 
 (defun symex--delete (count)
   "Delete COUNT symexes."

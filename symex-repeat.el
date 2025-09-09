@@ -31,6 +31,7 @@
 (require 'repeat-ring)
 
 (require 'symex-utils)
+(require 'symex-evil)
 
 (defmacro symex--kbd-macro-list (&rest keys)
   "Produce a list of key sequence vectors from KEYS."

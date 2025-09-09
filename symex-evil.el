@@ -32,24 +32,6 @@
 (require 'evil)
 (require 'cl-lib)
 (require 'symex-ui)
-(require 'symex-core)
-
-;; These override the definitions in the symex package, so this
-;; package (symex-evil) should be loaded after symex
-(defun symex-escape-higher ()
-  "Exit symex mode via an \"escape\"."
-  (interactive)
-  (cond (evil-mode (evil-normal-state))))
-
-(defun symex-enter-lower ()
-  "Exit symex mode via an \"enter\"."
-  (interactive)
-  (cond (evil-mode (evil-insert-state))))
-
-(defun symex-enter-lowest ()
-  "Enter the lowest (manual) editing level."
-  (interactive)
-  (cond (evil-mode (evil-insert-state))))
 
 (evil-define-state symex
   "Symex state."
