@@ -174,6 +174,27 @@ Enter the symex modal interface, activating symex keybindings."
   (interactive)
   (symex-editing-mode-enter))
 
+(defun symex-evil-initialize ()
+  "Evil interconnects for Symex."
+  ;; It's necessary to override all these keys because enabling normal
+  ;; state in symex evil state overrides Symex's handling of counts
+  ;; (though it otherwise works fine). So we must leave normal state
+  ;; disabled in symex state, which necessitates redefining the
+  ;; relevant bindings in symex mode explicitly.
+  ;; TODO: handle other undo systems?
+  
+  (add-hook 'symex-editing-mode-pre-entry-hook
+            #'symex--adjust-point-on-entry)
+  (add-hook 'symex-editing-mode-pre-entry-hook
+            #'evil-symex-state))
+
+(defun symex-evil-disable ()
+  "Disable evil interop."
+  (remove-hook 'symex-editing-mode-pre-entry-hook
+               #'symex--adjust-point-on-entry)
+  (remove-hook 'symex-editing-mode-pre-entry-hook
+               #'evil-symex-state))
+
 ;;;###autoload
 (define-minor-mode symex-mode
   "An evil way to edit Lisp symbolic expressions as trees."
@@ -181,8 +202,50 @@ Enter the symex modal interface, activating symex keybindings."
   :global t
   :group 'symex
   (if symex-mode
-      (symex-modal-initialize)
-    (symex-modal-disable)))
+      (progn (symex-modal-initialize)
+	     (symex-evil-initialize))
+    (progn (symex-modal-disable)
+	   (symex-evil-disable))))
+
+(defun symex--adjust-point ()
+  "Helper to adjust point to indicate the correct symex."
+  (unless (or (bobp)
+              (bolp)
+              (symex-lisp--point-at-start-p)
+              (looking-back "[,'`]" (line-beginning-position))
+              (save-excursion (backward-char)  ; just inside symex
+                              (or (symex-left-p)
+                                  ;; this is to exclude the case where
+                                  ;; we're inside a string, "|abc"
+                                  ;; which "inverts" the code structure
+                                  ;; and causes unexpected behavior when
+                                  ;; navigating using Emacs's built-in
+                                  ;; primitive symex motions. Unlike normal
+                                  ;; forms, opening and closing delimiters
+                                  ;; are not distinguished for strings and
+                                  ;; so we can't specifically check for
+                                  ;; "open quote," with the result that
+                                  ;; in the case "abc"|, we don't always
+                                  ;; select the right symex the way we
+                                  ;; would with (abc)|.
+                                  (symex-lisp-string-p))))
+    (condition-case nil
+        (backward-char)
+      (error nil))))
+
+(defun symex--adjust-point-on-entry ()
+  "Adjust point context from the Emacs to the Vim interpretation.
+
+If entering symex mode from Insert or Emacs mode, then translate point
+so it indicates the appropriate symex in Symex mode.  This is necessary
+because in Emacs, the symex preceding point is indicated.  In Vim, the
+symex \"under\" point is indicated.  We want to make sure to select the
+right symex when we enter Symex mode."
+  (interactive)
+  (when (or (not evil-mode)
+            (member evil-state '(insert emacs))
+            (not (symex-ts-available-p)))
+    (symex--adjust-point)))
 
 
 (provide 'symex)

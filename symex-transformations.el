@@ -38,7 +38,7 @@
 (require 'symex-utils)
 (require 'symex-traversals)
 (require 'symex-evaluator)
-(require 'symex-interop)
+(require 'symex-evil)
 
 ;; avoid byte-compile warnings
 (declare-function evil-start-undo-step "ext:evil")
