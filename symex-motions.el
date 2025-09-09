@@ -31,7 +31,6 @@
 (require 'symex-dsl)
 (require 'symex-traversals)
 (require 'symex-tree)
-(require 'symex-evil)
 
 (defvar symex-selection-hook nil
   "Hook run whenever a symex is selected.")

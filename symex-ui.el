@@ -25,9 +25,6 @@
 
 ;;; Code:
 
-
-(require 'symex-core)
-
 (defvar-local symex--original-scroll-margin nil)
 (defvar-local symex--original-max-scroll-margin nil)
 

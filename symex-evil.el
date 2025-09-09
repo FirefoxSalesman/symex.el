@@ -32,6 +32,7 @@
 (require 'evil)
 (require 'cl-lib)
 (require 'symex-ui)
+(require 'symex-motions)
 
 (evil-define-state symex
   "Symex state."
