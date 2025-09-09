@@ -37,7 +37,9 @@
 (evil-define-state symex
   "Symex state."
   :tag " <λ> "
-  :message "-- SYMEX --")
+  :message "-- SYMEX --"
+  :entry-hook (lambda () (add-hook 'symex-selection-hook #'symex-mode-highlight-selected))
+  :exit-hook (lambda () (remove-hook 'symex-selection-hook #'symex-mode-highlight-selected)))
 
 (define-key evil-symex-state-map (kbd "h") 'symex-go-backward)
 (define-key evil-symex-state-map (kbd "j") 'symex-go-down)
