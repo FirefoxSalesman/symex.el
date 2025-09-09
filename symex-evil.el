@@ -35,10 +35,13 @@
 (require 'symex-motions)
 
 (defun symex-state-init ()
+  "Sets up all of evil-symex-state's little changes"
   (add-hook 'symex-selection-hook #'symex-mode-highlight-selected))
 
 (defun symex-state-cleanup ()
-  (remove-hook 'symex-selection-hook #'symex-mode-highlight-selected))
+  "Undoes all of evil-symex-state's little changes"
+  (remove-hook 'symex-selection-hook #'symex-mode-highlight-selected)
+  (symex--delete-overlay))
 
 (evil-define-state symex
   "Symex state."
