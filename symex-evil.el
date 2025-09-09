@@ -34,12 +34,18 @@
 (require 'symex-ui)
 (require 'symex-motions)
 
+(defun symex-state-init ()
+  (add-hook 'symex-selection-hook #'symex-mode-highlight-selected))
+
+(defun symex-state-cleanup ()
+  (remove-hook 'symex-selection-hook #'symex-mode-highlight-selected))
+
 (evil-define-state symex
   "Symex state."
   :tag " <λ> "
   :message "-- SYMEX --"
-  :entry-hook (lambda () (add-hook 'symex-selection-hook #'symex-mode-highlight-selected))
-  :exit-hook (lambda () (remove-hook 'symex-selection-hook #'symex-mode-highlight-selected)))
+  :entry-hook (symex-state-init)
+  :exit-hook (symex-state-cleanup))
 
 (define-key evil-symex-state-map (kbd "h") 'symex-go-backward)
 (define-key evil-symex-state-map (kbd "j") 'symex-go-down)
