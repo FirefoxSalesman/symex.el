@@ -35,9 +35,16 @@
 
 (defvar symex-clojure-modes)
 
+;; https://emacs.stackexchange.com/questions/76400/how-do-i-check-if-the-current-buffer-has-a-treesit-parser
+(defun treesit-enabled-p ()
+  "Checks if the current buffer has a treesit parser."
+  (and (fboundp 'treesit-available-p)
+       (treesit-available-p)
+       (treesit-language-at (point))))
+
 (defun symex-tree-sitter-p ()
   "Whether to use the tree sitter primitives."
-  (and tree-sitter-mode
+  (and (treesit-available-p)
        ;; We use the Lisp primitives for Clojure
        ;; even though Emacs 29 provides tree-sitter APIs
        ;; for it, since the Lisp primitives in Symex are
