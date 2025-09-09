@@ -32,10 +32,6 @@
 
 (require 'symex-utils)
 
-;; defined in symex-lithium
-;; but declaring it as it is used here
-(defvar symex-editing-mode)
-
 (defmacro symex--kbd-macro-list (&rest keys)
   "Produce a list of key sequence vectors from KEYS."
   (declare (indent 0))
@@ -119,7 +115,7 @@
     "I"
     "w"
     "W")
-  "Key sequences in Symex (Lithium) mode that are repeatable.")
+  "Key sequences in Symex mode that are repeatable.")
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;  Parsing context  ;;;
@@ -189,7 +185,7 @@ It is expected to be called at the pre-command stage, i.e., prior to
 the command taking effect."
   (setq symex--initial-buffer (current-buffer))
   (setq symex--initial-point (point))
-  (setq symex--initial-mode-was-symex symex-editing-mode)
+  (setq symex--initial-mode-was-symex (evil-symex-state-p))
   (setq symex--replaying-point (point))
   (setq symex--current-keys key-seq))
 
@@ -311,7 +307,7 @@ STATE is the accumulated parsed state.  Not to be confused with the
 metadata used in parsing, but isn't what's actually parsed."
   (symex--clear-change-series)
   (let* ((last-entry (car state))) ; note state is in reverse order
-    (let ((accept (and symex-editing-mode
+    (let ((accept (and (evil-symex-state-p)
                        (symex--seq-number-p last-entry))))
       (when accept
         (symex-clear-parsing-context))
@@ -326,7 +322,7 @@ KEY-SEQ is the currently entered key sequence."
                    (> symex-repeat--recorded-length
                       symex-repeat--max-recording-length))))
     (when abort
-      (unless symex-editing-mode
+      (unless (evil-symex-state-p)
         (symex-repeat-disable))
       (symex-clear-parsing-context))
     abort))
@@ -365,7 +361,7 @@ This function assumes:
   ;; aborting if it gets too long.
   (setq symex-repeat--recorded-length
         (1+ symex-repeat--recorded-length))
-  (if symex-editing-mode
+  (if (evil-symex-state-p)
       key-seq
     (cond ((symex-repeat--noop) mantra--null)
           ((symex--initiating-key-p key-seq) key-seq)
@@ -420,7 +416,7 @@ Parse the list of mantras as a seq."
   ;; parser "symex", since one needs to subscribe to the other
   ;; and they should be distinguishable on the pub/sub side
   (repeat-ring-make "symex-repeat-ring")
-  "Repeat ring for use in Symex (Lithium) mode.")
+  "Repeat ring for use in Symex mode.")
 
 (defun symex-repeat (count)
   "Repeat the last action performed while in Symex mode.
@@ -473,7 +469,7 @@ See `after-change-functions' for more on START, END, and LENGTH."
   (when (and (or (mantra-parsing-in-progress-p symex-repeat-parser)
                  ;; either parsing is already in progress, or the current
                  ;; key sequence is about to start parsing
-                 (and symex-editing-mode
+                 (and (evil-symex-state-p)
                       (member symex--current-keys symex-repeatable-keys)))
              (eq symex--initial-buffer
                  (current-buffer)))

@@ -3,7 +3,7 @@
 ;; Author: Siddhartha Kasivajhula <sid@countvajhula.com>
 ;; URL: https://github.com/drym-org/symex.el
 ;; Version: 2.0
-;; Package-Requires: ((emacs "25.1") (seq "2.22") (symex-core "2.0") (lithium "0.1.1") (mantra "0.1") (repeat-ring "0.1") (pubsub "0.1"))
+;; Package-Requires: ((emacs "25.1") (seq "2.22") (symex-core "2.0") (mantra "0.1") (repeat-ring "0.1") (pubsub "0.1"))
 ;; Keywords: lisp, convenience, languages
 
 ;; This program is "part of the world," in the sense described at
@@ -39,10 +39,8 @@
 
 ;;; Code:
 
-(require 'lithium)
 (require 'symex-core)
 
-(require 'symex-lithium)
 (require 'symex-repeat)
 (require 'symex-ui)
 
@@ -127,21 +125,19 @@ selected symex, in a strict fashion."
 (defun symex-set-orientation ()
   "Initialize keybindings according to user customization of the orientation."
   (cond ((eq 'squirrel symex-orientation)
-         (lithium-define-keys symex-editing-mode
-           (("k" symex-go-up)
-            ("j" symex-go-down)
-            ("C-k" symex-climb-branch)
-            ("C-j" symex-descend-branch)
-            ("M-k" symex-goto-highest)
-            ("M-j" symex-goto-lowest))))
+         (define-key evil-symex-state-map "k" 'symex-go-up)
+         (define-key evil-symex-state-map "j" 'symex-go-down)
+         (define-key evil-symex-state-map "C-j" 'symex-climb-branch)
+         (define-key evil-symex-state-map "C-k" 'symex-descend-branch)
+         (define-key evil-symex-state-map "M-k" 'symex-goto-highest)
+         (define-key evil-symex-state-map "M-j" 'symex-goto-lowest))
         ((eq 'inverted symex-orientation)
-         (lithium-define-keys symex-editing-mode
-           (("j" symex-go-up)
-            ("k" symex-go-down)
-            ("C-j" symex-climb-branch)
-            ("C-k" symex-descend-branch)
-            ("M-j" symex-goto-highest)
-            ("M-k" symex-goto-lowest))))
+         (define-key evil-symex-state-map "k" 'symex-go-down)
+         (define-key evil-symex-state-map "j" 'symex-go-up)
+         (define-key evil-symex-state-map "C-j" 'symex-descend-branch)
+         (define-key evil-symex-state-map "C-k" 'symex-climb-branch)
+         (define-key evil-symex-state-map "M-k" 'symex-goto-lowest)
+         (define-key evil-symex-state-map "M-j" 'symex-goto-highest))
         (t (error "Invalid Symex orientation!"))))
 
 ;;;###autoload
@@ -151,8 +147,6 @@ selected symex, in a strict fashion."
   ;; e.g., update overlay
   (unless symex-core-mode
     (symex-core-mode 1))
-  (unless lithium-mode
-    (lithium-mode 1))
   ;; initialize repeat command
   (symex-repeat-initialize)
   (add-hook 'symex-editing-mode-pre-entry-hook
@@ -172,7 +166,7 @@ selected symex, in a strict fashion."
 
 Enter the symex modal interface, activating symex keybindings."
   (interactive)
-  (symex-editing-mode-enter))
+  (evil-symex-state))
 
 (defun symex-evil-initialize ()
   "Evil interconnects for Symex."
