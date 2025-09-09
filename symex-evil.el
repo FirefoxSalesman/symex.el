@@ -49,6 +49,7 @@
   :tag " <λ> "
   :message "-- SYMEX --"
   :entry-hook (symex-state-init)
+  :enable (normal)
   :exit-hook (symex-state-cleanup))
 
 (define-key evil-symex-state-map (kbd "h") 'symex-go-backward)
