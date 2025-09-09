@@ -31,8 +31,7 @@
 
 ;;; Code:
 
-(require 'tree-sitter)
-(require 'tsc)
+(require 'treesit)
 
 
 (defvar-local symex-ts--current-node nil "The current Tree Sitter node.")
@@ -40,17 +39,17 @@
 (defun symex-ts--set-current-node (node)
   "Set the current node to NODE and update internal references."
   (setq-local symex-ts--current-node node)
-  (goto-char (tsc-node-start-position node)))
+  (goto-char (treesit-node-start node)))
 
 (defun symex-ts--get-topmost-node (node)
   "Return the highest node in the tree starting from NODE.
 
 The returned node is the highest possible node that has the same
 start position as NODE."
-  (let ((node-start-pos (tsc-node-start-position node))
-        (parent (tsc-get-parent node)))
+  (let ((node-start-pos (treesit-node-start node))
+        (parent (treesit-node-parent node)))
     (if parent
-        (let ((parent-pos (tsc-node-start-position parent)))
+        (let ((parent-pos (treesit-node-start parent)))
           (if (eq node-start-pos parent-pos)
               (symex-ts--get-topmost-node parent)
             node))
@@ -61,7 +60,7 @@ start position as NODE."
 
 TRAVERSAL-FN should be a function which returns the next node in
 the chain. For example, to get the node two positions prior to
-SRC-NODE, use `tsc-get-prev-named-sibling'.
+SRC-NODE, use `treesit-node-prev-sibling'.
 
 If N traversals cannot be completed (e.g. if N is 3 but there are
 only two more nodes), the last node is returned instead."
@@ -72,19 +71,19 @@ only two more nodes), the last node is returned instead."
 
 (defun symex-ts--node-has-sibling-p (node)
   "Check if NODE has a sibling."
-  (or (tsc-get-prev-named-sibling node)
-      (tsc-get-next-named-sibling node)))
+  (or (treesit-node-prev-sibling node)
+      (treesit-node-next-sibling node)))
 
 (defun symex-ts--descend-to-child-with-sibling (node)
   "Descend from NODE to the first child recursively.
 
 Recursion will end when the child node has a sibling or is a
 leaf."
-  (let ((child (tsc-get-nth-named-child node 0)))
+  (let ((child (treesit-node-child node 0 t)))
     (if child
         (if (or (symex-ts--node-has-sibling-p child)
-                (not (= (tsc-node-start-position node)
-                        (tsc-node-start-position child))))
+                (not (= (treesit-node-start node)
+                        (treesit-node-start child))))
             child
           (symex-ts--descend-to-child-with-sibling child))
       nil)))
@@ -95,14 +94,14 @@ leaf."
 Recursion will end when the parent node has a sibling or is the
 root. The INITIAL node is used to ensure that a parent is selected
 even if it doesn't have siblings if it changes point (TODO: clarify)."
-  (let ((parent (tsc-get-parent node))
+  (let ((parent (treesit-node-parent node))
         (initial (or initial node)))
     (if parent
         ;; visit node if it either has no siblings or changes point,
         ;; for symmetry with "descend" behavior
-        (cond ((and (not (= (tsc-node-start-position node)
-                            (tsc-node-start-position parent)))
-                    (not (tsc-node-eq node initial)))
+        (cond ((and (not (= (treesit-node-start node)
+                            (treesit-node-start parent)))
+                    (not (treesit-node-eq node initial)))
                node)
               ((symex-ts--node-has-sibling-p parent) parent)
               (t (symex-ts--ascend-to-parent-with-sibling parent node)))
@@ -126,7 +125,7 @@ Return a Symex move (list with x,y node offsets tagged with
         (cursor (symex-ts-get-current-node)))
     (dotimes (_ (or count 1))
       (let ((new-node (funcall fn cursor)))
-        (when (and new-node (not (tsc-node-eq new-node cursor)))
+        (when (and new-node (not (treesit-node-eq new-node cursor)))
           (setq move (symex--move-+ move move-delta))
           (setq cursor new-node
                 target-node cursor))))
@@ -139,7 +138,7 @@ Return a Symex move (list with x,y node offsets tagged with
 (defun symex-ts-current-node-sexp ()
   "Print the current node as an s-expression."
   (interactive)
-  (message (tsc-node-to-sexp symex-ts--current-node)))
+  (message (treesit-node-string symex-ts--current-node)))
 
 (defun symex-ts-get-current-node ()
   "Return the current node.
@@ -155,9 +154,9 @@ Automatically set it to the node at point if necessary."
 
 (defun symex-ts-get-topmost-node-at-point ()
   "Return the top-most node at the current point."
-  (let ((root (tsc-root-node tree-sitter-tree))
+  (let ((root (treesit-buffer-root-node))
         (p (point)))
-    (symex-ts--get-topmost-node (tsc-get-named-descendant-for-position-range root p p))))
+    (symex-ts--get-topmost-node (treesit-node-descendant-for-range root p p t))))
 
 ;;; User Interface
 
@@ -174,24 +173,24 @@ Automatically set it to the node at point if necessary."
     `(let ((,orig (symex-ts-get-current-node)))
        ,operation
        (let ((,cur (symex-ts-get-current-node)))
-         (if (tsc-node-eq ,cur ,orig)
+         (if (treesit-node-eq ,cur ,orig)
              ,do-what
            ,@body)))))
 
 (defun symex-ts--at-root-p ()
   "Check whether the current node is the global root node."
-  (let ((root (tsc-root-node tree-sitter-tree))
+  (let ((root (treesit-buffer-root-node))
         (cur (symex-ts-get-current-node)))
-    (tsc-node-eq cur root)))
+    (treesit-node-eq cur root)))
 
 (defun symex-ts--at-tree-root-p ()
   "Check whether the current node is the root node of a tree.
 
 Note that this does not consider global root to be a tree root."
-  (let ((root (tsc-root-node tree-sitter-tree))
+  (let ((root (treesit-buffer-root-node))
         (cur (symex-ts-get-current-node)))
-    (let ((parent (tsc-get-parent cur)))
-      (or (not parent) (tsc-node-eq parent root)))))
+    (let ((parent (treesit-node-parent cur)))
+      (or (not parent) (treesit-node-eq parent root)))))
 
 (defun symex-ts--at-first-p ()
   "Check if the current node is the first one at some level."
@@ -220,7 +219,7 @@ Note that this does not consider global root to be a tree root."
 (defun symex-ts--point-at-start-p ()
   "Check if point is at the start of a node."
   (let ((cur (symex-ts-get-current-node)))
-    (= (point) (tsc-node-start-position cur))))
+    (= (point) (treesit-node-start cur))))
 
 (defun symex-ts--previous-p ()
   "Check if a preceding symex exists at this level."
@@ -237,14 +236,14 @@ Note that this does not consider global root to be a tree root."
 
 Move COUNT times, defaulting to 1."
   (interactive "p")
-  (symex-ts--move-with-count #'tsc-get-prev-named-sibling (symex-make-move -1 0) count))
+  (symex-ts--move-with-count #'treesit-node-prev-sibling (symex-make-move -1 0) count))
 
 (defun symex-ts-move-next-sibling (&optional count)
   "Move the point to the current node's next sibling if possible.
 
 Move COUNT times, defaulting to 1."
   (interactive "p")
-  (symex-ts--move-with-count #'tsc-get-next-named-sibling (symex-make-move 1 0) count))
+  (symex-ts--move-with-count #'treesit-node-next-sibling (symex-make-move 1 0) count))
 
 (defun symex-ts-move-parent (&optional count)
   "Move the point to the current node's parent if possible.
@@ -284,7 +283,7 @@ This is tree-sitter specific and meant for internal, primitive use."
 
 (defun symex-ts--get-starting-point ()
   "Get the point value at the start of the current symex."
-  (tsc-node-start-position symex-ts--current-node))
+  (treesit-node-start symex-ts--current-node))
 
 (defun symex-ts--get-end-point (count)
   "Get the point value after COUNT symexes.
@@ -293,7 +292,7 @@ If the containing expression terminates earlier than COUNT
 symexes, returns the end point of the last one found."
   (symex-ts-save-excursion
     (symex-ts-move-next-sibling (1- count))
-    (tsc-node-end-position symex-ts--current-node)))
+    (treesit-node-end symex-ts--current-node)))
 
 (defun symex-ts--point-height-offset-helper (orig-pos)
   "A helper to compute the height offset of the current symex.
