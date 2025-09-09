@@ -36,7 +36,8 @@
 
 (defun symex-state-init ()
   "Sets up all of evil-symex-state's little changes"
-  (add-hook 'symex-selection-hook #'symex-mode-highlight-selected))
+  (add-hook 'symex-selection-hook #'symex-mode-highlight-selected)
+  (symex--update-overlay))
 
 (defun symex-state-cleanup ()
   "Undoes all of evil-symex-state's little changes"
