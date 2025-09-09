@@ -41,7 +41,6 @@
 
 (require 'paredit)
 
-(require 'symex-motions)
 (require 'symex-tree)
 (require 'symex-transformations)
 (require 'symex-primitives)

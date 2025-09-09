@@ -126,7 +126,7 @@
 (define-key evil-symex-state-map "W" 'symex-wrap-and-append)
 (define-key evil-symex-state-map ";" 'symex-comment)
 (define-key evil-symex-state-map "M-;" 'symex-comment-remaining)
-(define-key evil-symex-state-map "H-h" 'symex-toggle-highlight)
+(define-key evil-symex-state-map "H-h" 'symex--toggle-highlight)
 (define-key evil-symex-state-map "." 'symex-repeat)
 (define-key evil-symex-state-map "C-." 'symex-repeat-pop)
 (define-key evil-symex-state-map "C-c ." 'symex-repeat-recent)
